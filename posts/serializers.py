@@ -1,44 +1,22 @@
 import json
 
-from rest_framework import serializers
+from .models import Post
 from account.models import User
+from rest_framework import serializers
 # from rest_framework.response import Response
 # from rest_framework import status
 # from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-from .models import Post
-# from .models import User
-# from . import views
-# from phonenumber_field.modelfields import PhoneNumberField
-# from .models import ExtendedUserExample
-
-
-
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id','title','text','is_enable','publish_date']
 
-
-
-
 class RegisterSerializer(serializers.ModelSerializer):
-  # email = serializers.EmailField(
-  #   required=True,
-  #  validators=[UniqueValidator(queryset=User.objects.all())]
-  # )
+
   password = serializers.CharField(required=True, validators=[validate_password])
   password_Repeat = serializers.CharField(required=True)
-  # email123 = serializers.EmailField(source="user.email")
-  # phone = serializers.CharField(source="user.password")
-  # # pass1 = serializers.PKOnlyObject()
-
-  # Phone = serializers.CharField(required=True, validators=)
-  # Phone = serializers.CharField(required=True)
-  # phone_num = serializers.CharField(required=True)
-  # phone_number = PhoneNumberField(unique=True, null=False, blank=False)
-  # name = serializers.CharField()
 
 
 
@@ -58,6 +36,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         {"password": "Password fields didn't match."})
     return data
 
+  # def validate(self, data):
+  #   Phone1 = data.get('Phone')
+  #
+  #   if  User.objects.filter(Phone=Phone1).exists():
+  #     raise serializers.ValidationError({"Phone":"This number already exist"})
+  #
+  #   return data
 
 
   def create(self, validated_data):
@@ -68,6 +53,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     user.set_password(validated_data['password'])
     user.save()
     return user
+
+
 
 
 
