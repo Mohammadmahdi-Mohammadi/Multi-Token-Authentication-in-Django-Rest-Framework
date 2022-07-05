@@ -17,9 +17,9 @@ urlpatterns = [
     path('posts/', include('posts.urls')),
     path('register/', RegisterUserAPIView.as_view()),
 
+
     path('get_token/', obtain_auth_token),
     # path('revoke_token/', RevokeToken.as_view() ),
-
 
     path('Logout/', Logout.as_view()),
     path('Live_token/', livetoken.as_view({'get': 'list'}))

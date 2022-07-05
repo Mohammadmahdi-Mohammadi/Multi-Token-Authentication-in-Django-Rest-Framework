@@ -30,6 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # 'phone': {'validators': [UniqueValidator(queryset=User.objects.all())]}
         }
 
+
   def validate(self, data):
     if data['password'] != data['password_Repeat']:
       raise serializers.ValidationError(
@@ -48,6 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
   def create(self, validated_data):
     user = User.objects.create(
       username=validated_data['username'],
+      Phone = validated_data['Phone']
       # Phone=validated_data['Phone']
       )
     user.set_password(validated_data['password'])
