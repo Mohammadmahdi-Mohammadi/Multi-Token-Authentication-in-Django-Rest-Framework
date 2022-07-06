@@ -89,6 +89,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import login as django_login, logout as django_logout
 
 
+
 from rest_framework import viewsets
 from django.shortcuts import render
 
@@ -99,6 +100,7 @@ from rest_framework.decorators import api_view
 
 from .models import Post
 from .serializers import PostSerializer
+
 
 # _________________________________________________________________________
 from rest_framework.permissions import AllowAny
@@ -226,7 +228,11 @@ class Login(APIView):
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
 
-
+class Logout(APIView):
+    authentication_classes = (TokenAuthentication,)
+    def post(self,request):
+        django_logout(request)
+        return Response({"msg":"logged out."},status=status.HTTP_200_OK)
 
 
 

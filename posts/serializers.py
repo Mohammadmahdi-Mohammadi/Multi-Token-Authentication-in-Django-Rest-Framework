@@ -59,21 +59,21 @@ class loginserializer(serializers.Serializer):
 
   def validate(self,data):
       username = data.get("username","")
-      password = data.get("password", "")
+      password = data.get("password","")
 
       if username and password:
           user = authenticate(username=username, password=password)
-
           if user:
-              if user:
-                  data['user']=user
-              else:
-                  raise exceptions.ValidationError("User is deactivated")
-
+             data['user']=user
           else:
               raise exceptions.ValidationError("Unable to login, wrong pass or username may cause it! ")
-
       else:
           raise exceptions.ValidationError("please Enter Username and password both!")
-
       return data
+
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    model = User
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
