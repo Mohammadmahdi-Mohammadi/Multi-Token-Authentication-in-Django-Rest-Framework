@@ -1,8 +1,10 @@
 import json
 
+from django.contrib.auth import authenticate
+
 from .models import Post
 from account.models import User
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 # from rest_framework.response import Response
 # from rest_framework import status
 # from rest_framework.validators import UniqueValidator
@@ -37,19 +39,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         {"password": "Password fields didn't match."})
     return data
 
-  # def validate(self, data):
-  #   Phone1 = data.get('Phone')
-  #
-  #   if  User.objects.filter(Phone=Phone1).exists():
-  #     raise serializers.ValidationError({"Phone":"This number already exist"})
-  #
-  #   return data
+
 
 
   def create(self, validated_data):
     user = User.objects.create(
       username=validated_data['username'],
-      Phone = validated_data['Phone']
+      Phon =validated_data['Phone']
       # Phone=validated_data['Phone']
       )
     user.set_password(validated_data['password'])
@@ -57,10 +53,27 @@ class RegisterSerializer(serializers.ModelSerializer):
     return user
 
 
+class loginserializer(serializers.Serializer):
+  username = serializers.CharField()
+  password = serializers.CharField()
 
+  def validate(self,data):
+      username = data.get("username","")
+      password = data.get("password", "")
 
+      if username and password:
+          user = authenticate(username=username, password=password)
 
+          if user:
+              if user:
+                  data['user']=user
+              else:
+                  raise exceptions.ValidationError("User is deactivated")
 
+          else:
+              raise exceptions.ValidationError("Unable to login, wrong pass or username may cause it! ")
 
+      else:
+          raise exceptions.ValidationError("please Enter Username and password both!")
 
-
+      return data

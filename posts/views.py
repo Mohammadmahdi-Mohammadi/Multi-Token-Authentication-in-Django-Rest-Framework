@@ -86,6 +86,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.http import Http404
 from rest_framework.authtoken.models import Token
+from django.contrib.auth import login as django_login, logout as django_logout
+
 
 from rest_framework import viewsets
 from django.shortcuts import render
@@ -102,7 +104,7 @@ from .serializers import PostSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, loginserializer
 from django.contrib.auth.models import User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
@@ -154,18 +156,7 @@ class PostListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class PostEBView(APIView):
-#
-#     def get(self, request):
-#         posts = Post.objects.all()
-#         serializer = PostSerializer(posts, many=True)
-#         return Response(serializer.data)
-#     def post(self, request):
-#         serializer = PostSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_410_GONE)
-#         return Response(serializer.data, status= status.HTTP_400_BAD_REQUEST)
+
 
 
 class PostDetailView(APIView):
@@ -222,19 +213,24 @@ class Logout(APIView):
         request.user.auth_token.delete()
         return Response( status=status.HTTP_200_OK)
 
-from rest_framework.permissions import IsAdminUser
-from rest_framework import permissions
 
-# class livetoken(APIView):
-#     permission_classes = [permissions.IsAdminUser,]
-#     def get(self,request):
-#         tokens = Tokenlist.objects.all()
-#         print("HHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-#         serializer = TokenSerializer(Tokenlist, many=True)
-#         print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
-#         print(serializer.data)
-#         print("HHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-#         return Response(serializer.data,status=204)
+
+class Login(APIView):
+    permission_classes = (AllowAny,)
+    def post(self, request):
+        serializer = loginserializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        django_login(request,user)
+        token,created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
 from rest_framework.viewsets import ViewSet, ModelViewSet
 class livetoken(ModelViewSet):

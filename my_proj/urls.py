@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 
 # from posts.views import RevokeToken
-from posts.views import RegisterUserAPIView,Logout,livetoken
+from posts.views import RegisterUserAPIView,Logout,livetoken,Login
 
 router = DefaultRouter()
 # router.register("", UserHandler, basename="Users")
@@ -16,6 +16,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('posts/', include('posts.urls')),
     path('register/', RegisterUserAPIView.as_view()),
+    path('login/',Login.as_view()),
 
 
     path('get_token/', obtain_auth_token),
