@@ -1,30 +1,22 @@
+import random
+
 from django.http import Http404
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login as django_login, logout as django_logout
-
 headers: { "X-CSRFToken": '{{csrf_token}}' }
-
 from .models import Post
 from .serializers import PostSerializer,ChangePasswordSerializer
-
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-
-
-# _________________________________________________________________________
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, loginserializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
+from account.models import User
 
 
-class UserDetailAPI(APIView):
-  authentication_classes = (TokenAuthentication,)
-  permission_classes = (AllowAny,)
-
-token_list = []
 
 class RegisterUserAPIView(generics.CreateAPIView):
   permission_classes = (AllowAny,)
@@ -42,8 +34,79 @@ class RegisterUserAPIView(generics.CreateAPIView):
       print("_________________________________________")
       return Response({'token': token.key}, status=status.HTTP_200_OK)
 
+class Login(APIView):
+    permission_classes = (AllowAny,)
+    def post(self, request):
+        serializer = loginserializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        django_login(request,user)
+        token,created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key}, status=status.HTTP_200_OK)
+
+class Logout(APIView):
+    def get(self, request, format=None):
+
+        print(request.user.auth_token)
+
+
+        token_list.remove(request.user.auth_token)
+        print("_________________________________________")
+        print(*token_list)
+        print("_________________________________________")
+        request.user.auth_token.delete()
+        return Response( status=status.HTTP_200_OK)
+
+class Logout(APIView):
+    authentication_classes = (TokenAuthentication,)
+    def post(self,request):
+        django_logout(request)
+        return Response({"msg":"logged out."},status=status.HTTP_200_OK)
+
+class ValidatePhoneSendOTP(APIView):
+
+    def send_otp(self,phone):
+        if phone:
+            key = random.randint(999, 9999)
+            return key
+
+    def post(self, request , *args, **kwargs):
+        phone_number = request.data.get('phone')
+        if phone_number:
+            phone = str(phone_number)
+            user = User.objects.filter(Phone=phone)
+            if not user.exists():
+                return Response({"Msg":"phone number not exists!"})
+            else:
+                key = self.send_otp(phone)
+                if key:
+                    pass
+                else:
+                    return Response({"Msg":"Sending OTP error"}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response({"msg":" please send phone number"},status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # _________________________________________________________________________
+class UserDetailAPI(APIView):
+  authentication_classes = (TokenAuthentication,)
+  permission_classes = (AllowAny,)
+
+token_list = []
+
 
 class PostListView(APIView):
 
@@ -97,41 +160,6 @@ class  RevokeToken(APIView):
 
 
 
-class Logout(APIView):
-    def get(self, request, format=None):
-
-        print(request.user.auth_token)
-
-
-        token_list.remove(request.user.auth_token)
-        print("_________________________________________")
-        print(*token_list)
-        print("_________________________________________")
-        request.user.auth_token.delete()
-        return Response( status=status.HTTP_200_OK)
-
-
-
-class Login(APIView):
-    permission_classes = (AllowAny,)
-    def post(self, request):
-        serializer = loginserializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        django_login(request,user)
-        token,created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key}, status=status.HTTP_200_OK)
-
-
-class Logout(APIView):
-    authentication_classes = (TokenAuthentication,)
-    def post(self,request):
-        django_logout(request)
-        return Response({"msg":"logged out."},status=status.HTTP_200_OK)
-
-
-
-
 
 class ChangePasswordView(generics.UpdateAPIView):
     """
@@ -173,7 +201,6 @@ class ChangePasswordView(generics.UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # ___________________________________________________________________________________
-
 
 from rest_framework.viewsets import ModelViewSet
 class livetoken(ModelViewSet):

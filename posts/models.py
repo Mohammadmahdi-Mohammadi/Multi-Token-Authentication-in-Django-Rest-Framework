@@ -46,3 +46,7 @@ class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     phone_number = models.IntegerField(blank=True)
+
+
+
+
