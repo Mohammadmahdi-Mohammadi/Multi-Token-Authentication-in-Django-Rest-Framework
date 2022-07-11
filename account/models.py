@@ -8,6 +8,7 @@ class User(AbstractUser):
     Phone = PhoneNumberField(blank=False,unique=True)
     OTP = models.CharField(max_length=4,blank=True,null=True)
     created_time = models.IntegerField(blank=True,null=True)
+    Phone_verify = models.BooleanField(null=True,blank=True)
     # pass
 
 
