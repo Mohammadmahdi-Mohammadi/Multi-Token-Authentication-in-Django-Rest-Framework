@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Post, Comment
+from account.models import User
 
 # class PostInLine(admin.TabularInline):
 #     model = Post
@@ -31,6 +32,7 @@ admin.site.register(Post, Postadmin)
 # admin.site.register(Post)
 admin.site.register(Comment, CommentAdmin)
 # admin.site.register(Tokenlist, Tokenadmin)
+# admin.site.register(User)
 
 
 

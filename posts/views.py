@@ -1,5 +1,6 @@
+import numbers
 import random
-
+import time
 from django.http import Http404
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login as django_login, logout as django_logout
@@ -49,7 +50,6 @@ class Logout(APIView):
 
         print(request.user.auth_token)
 
-
         token_list.remove(request.user.auth_token)
         print("_________________________________________")
         print(*token_list)
@@ -63,7 +63,7 @@ class Logout(APIView):
         django_logout(request)
         return Response({"msg":"logged out."},status=status.HTTP_200_OK)
 
-class ValidatePhoneSendOTP(APIView):
+class SendOTP(APIView):
 
     def send_otp(self,phone):
         if phone:
@@ -71,33 +71,53 @@ class ValidatePhoneSendOTP(APIView):
             return key
 
     def post(self, request , *args, **kwargs):
-        phone_number = request.data.get('phone')
+        phone_number = request.data.get('Phone')
         if phone_number:
             phone = str(phone_number)
             user = User.objects.filter(Phone=phone)
             if not user.exists():
-                return Response({"Msg":"phone number not exists!"})
+                return Response({"Msg":"phone number not exists!"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 key = self.send_otp(phone)
-                if key:
-                    pass
-                else:
-                    return Response({"Msg":"Sending OTP error"}, status=status.HTTP_400_BAD_REQUEST)
+                User.objects.filter(Phone=phone).update(OTP=key,created_time=time.time()*1000)
 
+                #
+                # print("____________________________________________")
+                # print("OTP is: ",key)
+                # print("____________________________________________")
+                # check_user = User.objects.filter(Phone=phone)
+                # check_user1 = check_user.first()
+                #
+                # print("OTP 1 is : ",check_user1.OTP)
+
+                return Response({"Msg":"OTP sent successfully!"}, status=status.HTTP_200_OK)
         else:
-            return Response({"msg":" please send phone number"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Phone":" please send valid phone number"},status=status.HTTP_400_BAD_REQUEST)
 
 
 
+class ValidateOTP(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request , *args, **kwargs):
+        otp_code = request.data.get('OTP')
+        # otp_f = int(otp_code)
+        print("____________________________________________")
+        print(otp_code)
+        print("____________________________________________")
 
-
-
-
-
-
-
-
-
+        if otp_code:
+         user = User.objects.filter(OTP=otp_code)
+         if not user.exists():
+            return Response({"Msg": "OTP is not valid!"}, status=status.HTTP_400_BAD_REQUEST)
+         else:
+            if user.OTP == otp_code:
+               current_time = time.time()
+               if (current_time - user.created_time) > 60000*4:
+                return Response({"Msg":"otp verified successfully!"}, status=status.HTTP_200_OK)
+               else:
+                return Response({"Msg":"otp has expired!"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"OTP": "Enter the OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # _________________________________________________________________________
@@ -159,8 +179,6 @@ class  RevokeToken(APIView):
         return Response({"msg":"Token Revoked for: "})
 
 
-
-
 class ChangePasswordView(generics.UpdateAPIView):
     """
     An endpoint for changing password.
@@ -190,9 +208,8 @@ class ChangePasswordView(generics.UpdateAPIView):
 
                 return Response({'token': token.key},status=status.HTTP_200_OK)
 
-
             else:
-                return Response({"old_password": ["repeat pass is not the same as the new password"]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"old_password": ["Password repeat and new pass are not the same!"]}, status=status.HTTP_400_BAD_REQUEST)
 
             # django_login(request, self.object)
             # token, created = Token.objects.get_or_create(user=serializer.instance)
@@ -207,8 +224,6 @@ class livetoken(ModelViewSet):
     # queryset = token_list.objects.all()
     # print(queryset)
     pass
-
-
 
 # ___________________________________________________________________________________
 # from django.shortcuts import render
@@ -246,7 +261,6 @@ class livetoken(ModelViewSet):
 #     return Response(serializer.data)
 #
 #
-#
 # def post_list(request):
 #     posts = Post.objects.all()
 #     context = {'posts' : posts}
@@ -275,7 +289,6 @@ class livetoken(ModelViewSet):
 #         context['comments'] = Comment.objects.filter(post=kwargs['object'].pk)
 #         return context
 #
-#
 # def post_create(request):
 #     if request.method == 'POST':
 #         form = PostForm(request.POST)
@@ -289,6 +302,4 @@ class livetoken(ModelViewSet):
 #         form = PostForm()
 #
 #     return render(request , 'posts/post_create.html', {'form': form})
-
-
 # _____________________________________________________________

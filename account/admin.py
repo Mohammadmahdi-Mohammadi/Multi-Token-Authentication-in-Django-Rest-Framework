@@ -5,7 +5,7 @@ from .models import User
 
 
 UserAdmin.fieldsets += (
-    ("Phone number Auth", {'fields':('Phone',)}),
+    ("Phone number Auth", {'fields':('Phone','OTP')}),
 
 
 )
