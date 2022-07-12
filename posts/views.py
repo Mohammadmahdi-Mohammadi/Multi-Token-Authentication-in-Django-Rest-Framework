@@ -247,21 +247,18 @@ class ForgetPassword(generics.UpdateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.filter(username=request.data.get('username')).first()
-            id = user.id
-            if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
-                print("####################################################################")
-                User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
-                print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            print("phone: ",user.Phone,"OTP: ",request.data.get('OTP') )
+            if send_otp(user.Phone ,request.data.get('OTP')):
+                if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
+                    User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
 
+                    token, created = Token.objects.get_or_create(user=user.id)
 
+                    return Response({'token': token.key}, status=status.HTTP_200_OK)
 
-                token, created = Token.objects.get_or_create(user=id)
-
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-
-            else:
-                return Response({"old_password": ["Password repeat and new pass are not the same!"]},
-                                status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"old_password": ["Password repeat and new pass are not the same!"]},
+                                    status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
