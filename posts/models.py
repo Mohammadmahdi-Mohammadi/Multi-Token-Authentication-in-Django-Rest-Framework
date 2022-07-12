@@ -27,20 +27,7 @@ class Comment(models.Model):
         return '{}- {}'.format(self.pk , self.text)
 
 
-# class Tokenlist(models.Model):
-#     username = models.CharField(max_length=50)
-#     token = models.CharField(max_length=50)
-#     created_time = models.DateTimeField(auto_now_add = True)
 
-# class Task(models.Model):
-#     name = models.CharField(max_length=128)
-#     owner = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#     )
-#
-#     def __str__(self):
-#         return self.name
 
 class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

@@ -72,3 +72,13 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
     new_pass_repeat = serializers.CharField(required=True)
+
+
+
+class ForgetPasswordSerializer(serializers.Serializer):
+    model = User
+    username = serializers.CharField(required=True)
+    OTP = serializers.IntegerField(required=True)
+    new_password = serializers.CharField(required=True)
+    new_pass_repeat = serializers.CharField(required=True)
+

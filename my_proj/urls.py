@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 
 # from posts.views import RevokeToken
-from posts.views import RegisterUserAPIView,Logout,livetoken,Login,ChangePasswordView, SendOTP , ValidateOTP
+from posts.views import RegisterUserAPIView,Logout,Login,ChangePasswordView, SendOTP , ValidateOTP, ForgetPassword
 
 router = DefaultRouter()
 # router.register("", UserHandler, basename="Users")
@@ -21,11 +21,12 @@ urlpatterns = [
     path('change-pass/', ChangePasswordView.as_view(),name='change-password'),
     path('send-otp/', SendOTP.as_view()),
     path('validate-otp/', ValidateOTP.as_view()),
+    path('forget-pass/', ForgetPassword.as_view(),name='Forget-password'),
 
     path('get_token/', obtain_auth_token),
     # path('revoke_token/', RevokeToken.as_view() ),
 
-    path('Live_token/', livetoken.as_view({'get': 'list'}))
+    # path('Live_token/', livetoken.as_view({'get': 'list'}))
 
     # url(r'^logout/', Logout.as_view()),
 

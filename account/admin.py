@@ -6,7 +6,7 @@ from .models import User
 
 
 UserAdmin.fieldsets += (
-    ("Phone number Auth", {'fields':('Phone','OTP')}),
+    ("Phone number Auth", {'fields':('Phone',)}),
 
 )
 admin.site.register(User, UserAdmin)

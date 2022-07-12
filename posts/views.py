@@ -1,22 +1,25 @@
-import numbers
+
+
+# headers: {"X-CSRFToken": '{{csrf_token}}'}
 import random
-import time
+from .models import Post
+from account.models import User
+from .serializers import RegisterSerializer, loginserializer
+from .serializers import PostSerializer, ChangePasswordSerializer, ForgetPasswordSerializer
+
 from django.http import Http404
-from rest_framework.authtoken.models import Token
+from django.core.cache import cache
 from django.contrib.auth import login as django_login, logout as django_logout
 
-headers: {"X-CSRFToken": '{{csrf_token}}'}
-from .models import Post
-from .serializers import PostSerializer, ChangePasswordSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, loginserializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
-from account.models import User
+from rest_framework.authtoken.models import Token
+
 
 
 class RegisterUserAPIView(generics.CreateAPIView):
@@ -72,7 +75,6 @@ class UserDetailAPI(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (AllowAny,)
 
-
 token_list = []
 
 
@@ -119,20 +121,10 @@ class PostDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RevokeToken(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def delete(self, request):
-        request.auth.delete()
-        return Response({"msg": "Token Revoked for: "})
-
 
 class ChangePasswordView(generics.UpdateAPIView):
-    """
-    An endpoint for changing password.
-    """
+
     serializer_class = ChangePasswordSerializer
-    # model = User
     permission_classes = (IsAuthenticated,)
 
     def get_object(self, queryset=None):
@@ -159,22 +151,48 @@ class ChangePasswordView(generics.UpdateAPIView):
             else:
                 return Response({"old_password": ["Password repeat and new pass are not the same!"]},
                                 status=status.HTTP_400_BAD_REQUEST)
-
-            # django_login(request, self.object)
-            # token, created = Token.objects.get_or_create(user=serializer.instance)
-            # return Response({'token': token.key},status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_200_OK)
 
 
 # ___________________________________________________________________________________
 
-class SendOTP(APIView):
 
-    def send_otp(self, phone):
-        if phone:
-            key = random.randint(999, 9999)
-            return key
+def send_otp_pre(phone):
+
+    if cache.get(phone):
+        print("_________________________________")
+        print("OTP code already sent!")
+        print("try again< a few minutes later :/ ")
+        print("_________________________________")
+        return False
+
+    try:
+        otp_to_send = random.randint(999,9999)
+        print("_________________________________")
+        print("OTP to send is: ",otp_to_send)
+        print("_________________________________")
+
+        cache.set(phone,otp_to_send,timeout=240)
+        # user_obj.otp = otp_to_send
+        # user_obj.save()
+        return False
+    except Exception as e:
+        print(e)
+
+
+def send_otp(phone,OTP):
+    if cache.get(phone):
+        print("phone is in the cache")
+        print("cache value is: ",cache.get(phone))
+        if int(cache.get(phone)) == int(OTP):
+            print('phone verified with code in the cache')
+            return True
+        return False
+
+
+class SendOTP(APIView):
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
         phone_number = request.data.get('Phone')
@@ -184,21 +202,13 @@ class SendOTP(APIView):
             if not user.exists():
                 return Response({"Msg": "phone number not exists!"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                key = self.send_otp(phone)
-                User.objects.filter(Phone=phone).update(OTP=key, created_time=time.time() * 1000)
-
-                #
-                # print("____________________________________________")
-                # print("OTP is: ",key)
-                # print("____________________________________________")
-                # check_user = User.objects.filter(Phone=phone)
-                # check_user1 = check_user.first()
-                #
-                # print("OTP 1 is : ",check_user1.OTP)
-
+                send_otp_pre(phone_number)
+                # key = self.send_otp(phone)
+                # User.objects.filter(Phone=phone).update(OTP=key, created_time=time.time() * 1000)
                 return Response({"Msg": "OTP sent successfully!"}, status=status.HTTP_200_OK)
         else:
             return Response({"Phone": " please send valid phone number"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ValidateOTP(APIView):
@@ -206,102 +216,54 @@ class ValidateOTP(APIView):
 
     def post(self, request, *args, **kwargs):
         otp_code = request.data.get('OTP')
-        # otp_f = int(otp_code)
+
         print("____________________________________________")
         print(otp_code)
         print("____________________________________________")
 
         if otp_code:
-            user = User.objects.filter(OTP=otp_code)
-            if not user.exists():
-                return Response({"Msg": "OTP is not valid!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            phone = request.user.Phone
+            print("__________________________________")
+            print("current state summary:")
+            print("PHONE NUMBER IS: ", phone)
+            print("INSERTED CODE is: ", otp_code)
+            print("__________________________________")
+            if send_otp(phone,otp_code):
+                return Response(status=status.HTTP_200_OK)
             else:
-                if user.OTP == otp_code:
-                    current_time = time.time()
-                    if (current_time - user.created_time) > 60000 * 4:
-                        return Response({"Msg": "otp verified successfully!"}, status=status.HTTP_200_OK)
-                    else:
-                        return Response({"Msg": "otp has expired!"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({"OTP": "Enter the OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-# ___________________________________________________________________________________
-# from django.shortcuts import render
-# from django.shortcuts import get_object_or_404
-# from django.http import HttpResponse
-# from .models import Post,Comment
-# from .Forms import PostForm
-#
-# from django.http import HttpResponseRedirect
-# from django.http import HttpResponseNotFound
-# from django.views import generic
-#
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from .serializers import PostSerializer
+class ForgetPassword(generics.UpdateAPIView):
 
-# @api_view(['GET','POST'])
-# def index(request):
-#     # print(request.data)
-#     #body
-#     # return HttpResponse('Welcome to test project')
-#     # pk = request.query_params.get('pk')
-#     # print(request.query_params)
-#     pk = request.data.get('pk')
-#     print(request.data)
-#     try:
-#
-#         p = Post.objects.get(pk=pk)
-#     except  Post.DoesNotExist:
-#         return Response({'detail':'Post not exist'})
-#
-#     serializer = PostSerializer(p)
-#     print(serializer)
-#     print('-'* 100)
-#     return Response(serializer.data)
-#
-#
-# def post_list(request):
-#     posts = Post.objects.all()
-#     context = {'posts' : posts}
-#     return render(request, 'posts/post_list.html', context=context)
-#
-#
-# def post_detail(request, post_id):
-#     try:
-#         post = Post.objects.get(pk=post_id)
-#     except Post.DoesNotExist:
-#         return HttpResponseNotFound('Post is not exist!')
-#     comments = Comment.objects.filter(post=post)
-#     context = {'post': post, 'comments':comments}
-#     return render(request, 'posts/post_detail.html', context=context)
-#
-#
-# class PostDetail(generic.DetailView):
-#     model = Post
-#     template_name = 'posts/post_detail.html'
-#     # context_object_name = 'posts'
-#     #
-#     # def get_queryset(self):
-#     #     return get_object_or_404(  )
-#     def get_context_data(self, **kwargs):
-#         context = super(PostDetail, self).get_context_data()
-#         context['comments'] = Comment.objects.filter(post=kwargs['object'].pk)
-#         return context
-#
-# def post_create(request):
-#     if request.method == 'POST':
-#         form = PostForm(request.POST)
-#         if form.is_valid():
-#             print(type(form.cleaned_data))
-#             print(form.cleaned_data)
-#             Post.objects.create(**form.cleaned_data)
-#             return HttpResponseRedirect('/posts/')
-#
-#     else:
-#         form = PostForm()
-#
-#     return render(request , 'posts/post_create.html', {'form': form})
-# _____________________________________________________________
+    permission_classes = (AllowAny,)
+    serializer_class = ForgetPasswordSerializer
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.filter(username=request.data.get('username')).first()
+            id = user.id
+            if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
+                print("####################################################################")
+                User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
+                print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
+
+
+                token, created = Token.objects.get_or_create(user=id)
+
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({"old_password": ["Password repeat and new pass are not the same!"]},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_200_OK)
+
+
+
