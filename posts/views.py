@@ -51,16 +51,16 @@ class Login(APIView):
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
 
-class Logout(APIView):
-    def get(self, request, format=None):
-        print(request.user.auth_token)
-
-        token_list.remove(request.user.auth_token)
-        print("_________________________________________")
-        print(*token_list)
-        print("_________________________________________")
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
+# class Logout(APIView):
+#     def get(self, request, format=None):
+#         print(request.user.auth_token)
+#
+#         token_list.remove(request.user.auth_token)
+#         print("_________________________________________")
+#         print(*token_list)
+#         print("_________________________________________")
+#         request.user.auth_token.delete()
+#         return Response(status=status.HTTP_200_OK)
 
 
 class Logout(APIView):
@@ -189,6 +189,7 @@ def send_otp(phone,OTP):
             print('phone verified with code in the cache')
             return True
         return False
+    return False
 
 
 class SendOTP(APIView):
@@ -217,9 +218,6 @@ class ValidateOTP(APIView):
     def post(self, request, *args, **kwargs):
         otp_code = request.data.get('OTP')
 
-        print("____________________________________________")
-        print(otp_code)
-        print("____________________________________________")
 
         if otp_code:
 
@@ -247,10 +245,17 @@ class ForgetPassword(generics.UpdateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.filter(username=request.data.get('username')).first()
-            print("phone: ",user.Phone,"OTP: ",request.data.get('OTP') )
+            print("phone: ",user.Phone,"OTP: ",request.data.get('OTP'))
             if send_otp(user.Phone ,request.data.get('OTP')):
                 if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
-                    User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
+                    # User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
+                    u = User.objects.get(username__exact=user.username)
+                    u.set_password(request.data.get('new_password'))
+                    u.save()
+                    print("________________________________________________")
+                    print("New pass is: ", request.data.get('new_password'))
+                    print("username: ", user.username)
+                    print("________________________________________________")
 
                     token, created = Token.objects.get_or_create(user=user.id)
 
@@ -259,7 +264,11 @@ class ForgetPassword(generics.UpdateAPIView):
                 else:
                     return Response({"old_password": ["Password repeat and new pass are not the same!"]},
                                     status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"No valid OTP for this number! "},
+                                status=status.HTTP_400_BAD_REQUEST)
         else:
+
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
 

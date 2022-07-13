@@ -27,8 +27,6 @@ class Comment(models.Model):
         return '{}- {}'.format(self.pk , self.text)
 
 
-
-
 class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
