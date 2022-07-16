@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     "phonenumber_field",
 
     'rest_framework',
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     'posts','profiles','account',
-    'django_rest_multitokenauth',
+    # 'django_rest_multitokenauth',
 ]
 
 MIDDLEWARE = [
@@ -142,7 +142,7 @@ STATIC_URL = 'static/'
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-        # 'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication',
+        'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [

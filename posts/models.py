@@ -27,11 +27,30 @@ class Comment(models.Model):
         return '{}- {}'.format(self.pk , self.text)
 
 
+
+
 class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     phone_number = models.IntegerField(blank=True)
 
 
+
+from django.conf import settings
+from django.db import models
+from rest_framework.authtoken.models import Token
+
+
+class MultiTokens(Token):
+    # key is no longer primary key, but still indexed and unique
+    key = models.CharField("Key", max_length=40, db_index=True, unique=True)
+    # relation to user is a ForeignKey, so each user can have more than one token
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='auth_tokens',
+        on_delete=models.CASCADE, verbose_name="User"
+    )
+    name = models.CharField("Name", max_length=64)
+    class Meta:
+        unique_together = (('user', 'name'),)
 
 

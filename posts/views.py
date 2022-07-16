@@ -2,10 +2,16 @@
 
 # headers: {"X-CSRFToken": '{{csrf_token}}'}
 import random
-from .models import Post
+
+from rest_framework.exceptions import NotFound
+
+from .models import Post,MultiTokens
 from account.models import User
 from .serializers import RegisterSerializer, loginserializer
 from .serializers import PostSerializer, ChangePasswordSerializer, ForgetPasswordSerializer
+from .serializers import KillTokenSerializer,ListTokenSerializer
+from .authentication import MultiTokenAuthentication
+
 
 from django.http import Http404
 from django.core.cache import cache
@@ -18,36 +24,45 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
-from rest_framework.authtoken.models import Token
-
+# from rest_framework.authtoken.models import Token
+from .models import MultiTokens
 
 
 class RegisterUserAPIView(generics.CreateAPIView):
+    authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (AllowAny,)
+
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # headers = self.get_success_headers(serializer.data)
-        token, created = Token.objects.get_or_create(user=serializer.instance)
+        user_agent = request.META['HTTP_USER_AGENT']
+        token, created = MultiTokens.objects.get_or_create(user=serializer.instance, name = user_agent)
         token_list.append(token)
-        print("_________________________________________")
-        print(*token_list)
-        print("_________________________________________")
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
 
 class Login(APIView):
+    authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
         serializer = loginserializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         django_login(request, user)
-        token, created = Token.objects.get_or_create(user=user)
+        user_agent = request.META['HTTP_USER_AGENT']
+        token, created = MultiTokens.objects.get_or_create(user=user,name=user_agent)
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
 
@@ -64,10 +79,16 @@ class Login(APIView):
 
 
 class Logout(APIView):
-    authentication_classes = (TokenAuthentication,)
+    print("************************************************************************************************")
+    # authentication_classes = (TokenAuthentication,)
+    # authentication_classes = (AllowAny,)
+    # permission_classes = (IsAuthenticated,)
+    authentication_classes = (MultiTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         django_logout(request)
+        request.auth.delete()
         return Response({"msg": "logged out."}, status=status.HTTP_200_OK)
 
 # _________________________________________________________________________
@@ -76,7 +97,6 @@ class UserDetailAPI(APIView):
     permission_classes = (AllowAny,)
 
 token_list = []
-
 
 class PostListView(APIView):
 
@@ -92,7 +112,6 @@ class PostListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class PostDetailView(APIView):
     def get_object(self, pk):
@@ -120,18 +139,23 @@ class PostDetailView(APIView):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+# _________________________________________________________________________
 
 class ChangePasswordView(generics.UpdateAPIView):
+    authentication_classes = (MultiTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     serializer_class = ChangePasswordSerializer
-    permission_classes = (IsAuthenticated,)
 
     def get_object(self, queryset=None):
         obj = self.request.user
         return obj
 
     def update(self, request, *args, **kwargs):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
+
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
 
@@ -144,7 +168,7 @@ class ChangePasswordView(generics.UpdateAPIView):
             if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
                 self.object.set_password(serializer.data.get("new_password"))
                 self.object.save()
-                token, created = Token.objects.get_or_create(user=self.get_object())
+                token, created = MultiTokens.objects.get_or_create(user=self.get_object())
 
                 return Response({'token': token.key}, status=status.HTTP_200_OK)
 
@@ -191,8 +215,8 @@ def send_otp(phone,OTP):
         return False
     return False
 
-
 class SendOTP(APIView):
+    authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
@@ -211,8 +235,9 @@ class SendOTP(APIView):
             return Response({"Phone": " please send valid phone number"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class ValidateOTP(APIView):
+
+    authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
@@ -237,11 +262,15 @@ class ValidateOTP(APIView):
 
 
 class ForgetPassword(generics.UpdateAPIView):
-
+    authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (AllowAny,)
     serializer_class = ForgetPasswordSerializer
 
     def update(self, request, *args, **kwargs):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.filter(username=request.data.get('username')).first()
@@ -256,8 +285,8 @@ class ForgetPassword(generics.UpdateAPIView):
                     print("New pass is: ", request.data.get('new_password'))
                     print("username: ", user.username)
                     print("________________________________________________")
-
-                    token, created = Token.objects.get_or_create(user=user.id)
+                    user_agent = request.META['HTTP_USER_AGENT']
+                    token, created = MultiTokens.objects.get_or_create(user=user.id,name = user_agent)
 
                     return Response({'token': token.key}, status=status.HTTP_200_OK)
 
@@ -272,4 +301,35 @@ class ForgetPassword(generics.UpdateAPIView):
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
 
+class ListTokenAPIView(generics.ListAPIView):
+    authentication_classes = (MultiTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = MultiTokens.objects.all()
+    # permission_classes = (IsAuthenticated,)
+    serializer_class = ListTokenSerializer
 
+    def get(self, request, *args, **kwargs):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
+        return self.list(request, *args, **kwargs)
+
+
+class KillTokensAPIView(APIView):
+    authentication_classes = (MultiTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = MultiTokens.objects.all()
+    # permission_classes = (IsAuthenticated,)
+    serializer_class = KillTokenSerializer
+
+
+    def post(self, request, *args, **kwargs):
+        user_agent = request.META['HTTP_USER_AGENT']
+        if user_agent is None:
+            Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tokens = serializer.validated_data['tokens']
+        tokens.delete()
+        return Response(status=status.HTTP_200_OK)

@@ -8,6 +8,8 @@ class User(AbstractUser):
     Phone = PhoneNumberField(blank=False,unique=True)
     Phone_verify = models.BooleanField(null=True,blank=True)
     OTP = models.CharField(max_length=4,blank=True,null=True)
+    provider = models.CharField(max_length=20,blank=True,null=True)
+    # provider_label
     # pass
 
 
