@@ -1,7 +1,13 @@
 from django.conf import settings
 
 from account.models import User
+
 from django.db import models
+from django.conf import settings
+from django.db import models
+
+from rest_framework.authtoken.models import Token
+
 
 class Post(models.Model):
     auth = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -16,7 +22,6 @@ class Post(models.Model):
         #return self.title
         return '{}- {}'.format(self.pk , self.title)
 
-
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete= models.CASCADE)
     text = models.TextField()
@@ -26,9 +31,6 @@ class Comment(models.Model):
         #return self.title
         return '{}- {}'.format(self.pk , self.text)
 
-
-
-
 class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
@@ -36,10 +38,8 @@ class ExtendedUserExample(models.Model):
 
 
 
-from django.conf import settings
-from django.db import models
-from rest_framework.authtoken.models import Token
 
+# from django.utils.translation import gettext_lazy as _
 
 class MultiTokens(Token):
     # key is no longer primary key, but still indexed and unique
@@ -47,10 +47,12 @@ class MultiTokens(Token):
     # relation to user is a ForeignKey, so each user can have more than one token
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='auth_tokens',
-        on_delete=models.CASCADE, verbose_name="User"
-    )
+        on_delete=models.CASCADE, verbose_name="User" )
     name = models.CharField("Name", max_length=64)
+    counterplus = models.IntegerField(default=0)
+
     class Meta:
-        unique_together = (('user', 'name'),)
+        unique_together = (('user', 'counterplus'),)
+
 
 

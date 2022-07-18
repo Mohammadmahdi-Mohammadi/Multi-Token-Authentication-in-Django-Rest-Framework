@@ -28,7 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 # AUTH_USER_MODEL='UserManagement.Users'
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,7 +40,6 @@ INSTALLED_APPS = [
     "phonenumber_field",
 
     'rest_framework',
-    # 'rest_framework.authtoken',
     'posts','profiles','account',
     # 'django_rest_multitokenauth',
 ]
@@ -54,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'posts.middlewares.simple_middleware',
 ]
 
 ROOT_URLCONF = 'my_proj.urls'
