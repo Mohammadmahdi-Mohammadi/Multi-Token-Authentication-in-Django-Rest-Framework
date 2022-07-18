@@ -20,40 +20,40 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['id', 'title', 'text', 'is_enable', 'publish_date']
 
-def Provider_check(data):
-    # print("+++++++++++++++++++++++++++++++")
-    # print("Provider_Check is done")
-    # print("+++++++++++++++++++++++++++++++")
-
-    check_phone = data['Phone']
-
-    MCI = check_phone.startswith(('990','991','992','993','994','911','912','913','914','915','916','917','918'),3)
-    MTN_Irancell = check_phone.startswith(('930','933','935','936','937','938','939','901','902','903','904','905','941'),3)
-    Rightel = check_phone.startswith(('920','921','922'),3)
-    Talia = check_phone.startswith(('932'),3)
-    Espadan = check_phone.startswith(('931'),3)
-    Kish = check_phone.startswith(('934'),3)
-    Students = check_phone.startswith(('994'),3)
-    Shatel_virtual = check_phone.startswith(('998'),3)
-
-    if MCI:
-        return 'MCI'
-    elif MTN_Irancell:
-        return 'MTN-Irancell'
-    elif Rightel:
-        return 'Rightel'
-    elif Talia:
-        return 'Talia'
-    elif Espadan:
-        return 'Espadan'
-    elif Kish:
-        return 'Kish'
-    elif Students:
-        return 'Students'
-    elif Shatel_virtual:
-        return 'Shatel-Virtual'
-    else:
-        return 'not recognized'
+# def Provider_check(data):
+#     # print("+++++++++++++++++++++++++++++++")
+#     # print("Provider_Check is done")
+#     # print("+++++++++++++++++++++++++++++++")
+#
+#     check_phone = data['Phone']
+#
+#     MCI = check_phone.startswith(('990','991','992','993','994','911','912','913','914','915','916','917','918'),3)
+#     MTN_Irancell = check_phone.startswith(('930','933','935','936','937','938','939','901','902','903','904','905','941'),3)
+#     Rightel = check_phone.startswith(('920','921','922'),3)
+#     Talia = check_phone.startswith(('932'),3)
+#     Espadan = check_phone.startswith(('931'),3)
+#     Kish = check_phone.startswith(('934'),3)
+#     Students = check_phone.startswith(('994'),3)
+#     Shatel_virtual = check_phone.startswith(('998'),3)
+#
+#     if MCI:
+#         return 'MCI'
+#     elif MTN_Irancell:
+#         return 'MTN-Irancell'
+#     elif Rightel:
+#         return 'Rightel'
+#     elif Talia:
+#         return 'Talia'
+#     elif Espadan:
+#         return 'Espadan'
+#     elif Kish:
+#         return 'Kish'
+#     elif Students:
+#         return 'Students'
+#     elif Shatel_virtual:
+#         return 'Shatel-Virtual'
+#     else:
+#         return 'not recognized'
 
 
 class ThisIsInsane(object):
