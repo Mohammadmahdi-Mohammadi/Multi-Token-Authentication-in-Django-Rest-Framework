@@ -30,7 +30,6 @@ token_list = []
 class RegisterUserAPIView(generics.CreateAPIView):
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (AllowAny,)
-
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
@@ -57,7 +56,6 @@ class Login(APIView):
         # user_agent = request.META['HTTP_USER_AGENT']
         # if user_agent is None:
         #     Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
-
         serializer = loginserializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -83,7 +81,6 @@ class Logout(APIView):
 class ChangePasswordView(generics.UpdateAPIView):
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-
     serializer_class = ChangePasswordSerializer
 
     def get_object(self, queryset=None):
@@ -97,11 +94,9 @@ class ChangePasswordView(generics.UpdateAPIView):
 
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
-
         if serializer.is_valid():
             if not self.object.check_password(serializer.data.get("old_password")):
                 return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
-
             if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
                 self.object.set_password(serializer.data.get("new_password"))
                 self.object.save()
@@ -112,9 +107,7 @@ class ChangePasswordView(generics.UpdateAPIView):
                 user_object.save()
                 user_agent = request.META['HTTP_USER_AGENT']
                 token, created = MultiTokens.objects.get_or_create(user=user, name=user_agent, counterplus=user.counter)
-
                 return Response({'token': token.key}, status=status.HTTP_200_OK)
-
             else:
                 return Response({"old_password": ["Password repeat and new pass are not the same!"]},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -176,7 +169,6 @@ class SendOTP(APIView):
 
 
 class ValidateOTP(APIView):
-
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -210,14 +202,11 @@ class ForgetPassword(generics.UpdateAPIView):
         if serializer.is_valid():
             user = User.objects.filter(username=request.data.get('username')).first()
             print("phone: ",user.Phone,"OTP: ",request.data.get('OTP'))
-
             if send_otp(user.Phone ,request.data.get('OTP')):
                 if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
                     u = User.objects.get(username__exact=user.username)
-
                     u.set_password(request.data.get('new_password'))
                     u.save()
-
                     print("________________________________________________")
                     print("New pass is: ", request.data.get('new_password'))
                     print("username: ", user.username)
@@ -227,9 +216,8 @@ class ForgetPassword(generics.UpdateAPIView):
                     user_object = User.objects.get(id=user.id)
                     user_object.counter += 1
                     user_object.save()
-                    token, created = MultiTokens.objects.get_or_create(user=user ,name = user_agent,counterplus=user.counter)
+                    token, created = MultiTokens.objects.get_or_create(user=user, name=user_agent, counterplus=user.counter)
                     return Response({'token': token.key}, status=status.HTTP_200_OK)
-
                 else:
                     return Response({"old_password": ["Password repeat and new pass are not the same!"]},
                                     status=status.HTTP_400_BAD_REQUEST)
@@ -237,7 +225,6 @@ class ForgetPassword(generics.UpdateAPIView):
                 return Response({"No valid OTP for this number! "},
                                 status=status.HTTP_400_BAD_REQUEST)
         else:
-
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
 
@@ -282,7 +269,14 @@ class KillTokensAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+
+
+
+
+
 # _________________________________________________________________________
+
+
 class UserDetailAPI(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (AllowAny,)
