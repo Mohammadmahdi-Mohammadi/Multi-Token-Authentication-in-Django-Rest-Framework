@@ -3,9 +3,8 @@
 # headers: {"X-CSRFToken": '{{csrf_token}}'}
 import random
 
-from rest_framework.exceptions import NotFound
 
-from .models import Post,MultiTokens
+from .models import Post
 from account.models import User
 from .serializers import RegisterSerializer, loginserializer
 from .serializers import PostSerializer, ChangePasswordSerializer, ForgetPasswordSerializer
@@ -24,7 +23,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
-# from rest_framework.authtoken.models import Token
 from .models import MultiTokens
 token_list = []
 
@@ -73,9 +71,6 @@ class Login(APIView):
 
 
 class Logout(APIView):
-    # authentication_classes = (TokenAuthentication,)
-    # authentication_classes = (AllowAny,)
-    # permission_classes = (IsAuthenticated,)
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -83,7 +78,6 @@ class Logout(APIView):
         django_logout(request)
         request.auth.delete()
         return Response({"msg": "logged out."}, status=status.HTTP_200_OK)
-
 
 
 class ChangePasswordView(generics.UpdateAPIView):
@@ -127,6 +121,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
+
 def send_otp_pre(phone):
 
     if cache.get(phone):
@@ -142,23 +137,25 @@ def send_otp_pre(phone):
         print("OTP to send is: ",otp_to_send)
         print("_________________________________")
 
-        cache.set(phone,otp_to_send,timeout=240)
+        cache.set(phone,otp_to_send, timeout=240)
         # user_obj.otp = otp_to_send
         # user_obj.save()
         return False
     except Exception as e:
         print(e)
 
-def send_otp(phone,OTP):
+
+def send_otp(phone, OTP):
     if cache.get(phone):
         print("phone is in the cache")
-        print("cache value is: ",cache.get(phone))
+        print("cache value is: ", cache.get(phone))
         if int(cache.get(phone)) == int(OTP):
             print('phone verified with code in the cache')
             cache.delete(phone)
             return True
         return False
     return False
+
 
 class SendOTP(APIView):
     authentication_classes = (MultiTokenAuthentication,)
@@ -170,14 +167,13 @@ class SendOTP(APIView):
             phone = str(phone_number)
             user = User.objects.filter(Phone=phone)
             if not user.exists():
-                return Response({"Msg": "OTP sent successfully :]]]]]]]]]]]]"}, status=status.HTTP_200_OK)
+                return Response({"Msg": "OTP sent successfully :]"}, status=status.HTTP_200_OK)
             else:
                 send_otp_pre(phone_number)
-                # key = self.send_otp(phone)
-                # User.objects.filter(Phone=phone).update(OTP=key, created_time=time.time() * 1000)
                 return Response({"Msg": "OTP sent successfully!"}, status=status.HTTP_200_OK)
         else:
             return Response({"Phone": " please send valid phone number"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ValidateOTP(APIView):
 
@@ -217,7 +213,6 @@ class ForgetPassword(generics.UpdateAPIView):
 
             if send_otp(user.Phone ,request.data.get('OTP')):
                 if serializer.data.get("new_password") == serializer.data.get("new_pass_repeat"):
-                    # User.objects.filter(username=request.data.get('username')).update(password=self.request.data.get('new_password'))
                     u = User.objects.get(username__exact=user.username)
 
                     u.set_password(request.data.get('new_password'))
@@ -245,11 +240,11 @@ class ForgetPassword(generics.UpdateAPIView):
 
             return Response(serializer.errors, status=status.HTTP_200_OK)
 
+
 class ListTokenAPIView(generics.ListAPIView):
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = MultiTokens.objects.all()
-    # permission_classes = (IsAuthenticated,)
     serializer_class = ListTokenSerializer
 
     def get(self, request, *args, **kwargs):
@@ -257,7 +252,6 @@ class ListTokenAPIView(generics.ListAPIView):
         # if user_agent is None:
         #     Response({"Msg: User-Agent is empty! "},status=status.HTTP_400_BAD_REQUEST)
         return self.list(request, *args, **kwargs)
-
 
     def get_queryset(self):
         requesttoken = self.request.META.get('HTTP_AUTHORIZATION')
@@ -269,13 +263,12 @@ class ListTokenAPIView(generics.ListAPIView):
         tokens = MultiTokens.objects.filter(user=userobject.id)
         return tokens
 
+
 class KillTokensAPIView(APIView):
     authentication_classes = (MultiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = MultiTokens.objects.all()
-    # permission_classes = (IsAuthenticated,)
     serializer_class = KillTokenSerializer
-
 
     def post(self, request, *args, **kwargs):
         # user_agent = request.META['HTTP_USER_AGENT']
@@ -289,12 +282,11 @@ class KillTokensAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-
-
 # _________________________________________________________________________
 class UserDetailAPI(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (AllowAny,)
+
 
 class PostListView(APIView):
 
@@ -310,6 +302,7 @@ class PostListView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PostDetailView(APIView):
     def get_object(self, pk):

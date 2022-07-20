@@ -65,29 +65,24 @@ class ThisIsInsane(object):
             # count += 1
             if callable(obj) and name != 'call_everything' and name[:2] != '__':
                 bool, provider = obj()
-                if bool == True:
+                if bool:
                     print("*******************")
-                    bool , provider = obj()
+                    bool_final, provider = obj()
                     print("num is:", provider)
                     print("*******************")
                     return provider
 
 
+class Provider_check(ThisIsInsane):
 
-
-
-class provider_check(ThisIsInsane):
-
-    def __init__(self,phone):
+    def __init__(self, phone):
         self.phone = phone
 
     def MCI(self):
-
         MCI = self.phone.startswith(
             ('990', '991', '992', '993', '994', '911', '912', '913', '914', '915', '916', '917', '918'), 3)
         # print("MCI is: ", MCI)
         # print("Phone is: ", self.phone)
-
         if MCI:
             return True, "MCI"
         return False, "belongs to other classes"
@@ -162,9 +157,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
-        A = provider_check(validated_data['Phone'])
+        A = Provider_check(validated_data['Phone'])
         p_check = A.call_everything()
-
 
         user = User.objects.create(
             username=validated_data['username'],
@@ -201,7 +195,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
     new_pass_repeat = serializers.CharField(required=True)
-
 
 
 class ForgetPasswordSerializer(serializers.Serializer):

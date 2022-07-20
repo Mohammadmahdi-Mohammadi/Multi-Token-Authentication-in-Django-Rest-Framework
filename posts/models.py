@@ -22,24 +22,23 @@ class Post(models.Model):
         #return self.title
         return '{}- {}'.format(self.pk , self.title)
 
+
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete= models.CASCADE)
     text = models.TextField()
     created_time = models.DateTimeField(auto_now_add = True)
     updated_time = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         #return self.title
         return '{}- {}'.format(self.pk , self.text)
+
 
 class ExtendedUserExample(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     phone_number = models.IntegerField(blank=True)
 
-
-
-
-# from django.utils.translation import gettext_lazy as _
 
 class MultiTokens(Token):
     # key is no longer primary key, but still indexed and unique
