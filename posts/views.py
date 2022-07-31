@@ -3,14 +3,12 @@
 # headers: {"X-CSRFToken": '{{csrf_token}}'}
 import random
 
-
 from .models import Post
 from account.models import User
 from .serializers import RegisterSerializer, loginserializer
 from .serializers import PostSerializer, ChangePasswordSerializer, ForgetPasswordSerializer
 from .serializers import KillTokenSerializer,ListTokenSerializer
 from .authentication import MultiTokenAuthentication
-
 
 from django.http import Http404
 from django.core.cache import cache
@@ -181,7 +179,7 @@ class ValidateOTP(APIView):
             print("PHONE NUMBER IS: ", phone)
             print("INSERTED CODE is: ", otp_code)
             print("__________________________________")
-            if send_otp(phone,otp_code):
+            if send_otp(phone, otp_code):
                 return Response(status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -267,10 +265,6 @@ class KillTokensAPIView(APIView):
         tokens = serializer.validated_data['tokens']
         tokens.delete()
         return Response(status=status.HTTP_200_OK)
-
-
-
-
 
 
 

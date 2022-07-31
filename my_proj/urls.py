@@ -25,6 +25,9 @@ urlpatterns = [
 
     path('token-list/', ListTokenAPIView.as_view()),
     path('kill-token/', KillTokensAPIView.as_view()),
+
+    path('product/', include('product.urls')),
+    path('cart/', include('carts.urls')),
     # _______________________________________________
 
 

@@ -142,11 +142,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'password', 'password_Repeat', 'Phone')
 
-        extra_kwargs = {
-            # 'password': {'write_only': True},
-            # 'Phone': {'validators': []}
-            # 'phone': {'validators': [UniqueValidator(queryset=User.objects.all())]}
-        }
+
 
     def validate(self, data):
         if data['password'] != data['password_Repeat']:
