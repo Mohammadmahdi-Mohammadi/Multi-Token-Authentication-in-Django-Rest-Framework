@@ -4,7 +4,7 @@ from .models import Product, Comment
 
 class CommentadminInLine(admin.TabularInline):
     model = Comment
-    fields = ['id', 'body',]
+    fields = ['id', 'body','chech_admin']
     extra = 0
 
 

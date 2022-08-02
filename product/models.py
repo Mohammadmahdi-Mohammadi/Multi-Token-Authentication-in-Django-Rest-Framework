@@ -4,13 +4,14 @@ from  account.models import User
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
-    count = models.IntegerField(default=0)
+    brand = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
     rate = models.IntegerField(default=0)
     number_of_voters = models.IntegerField(default=0)
+    count = models.IntegerField(default=0)
+    users = models.CharField(max_length=50000, null=True, blank=True)
     def __str__(self):
         return self.name
-    # def __init__(self):
-    #     user_array = []
 
 
 class Comment(models.Model):

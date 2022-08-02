@@ -2,17 +2,30 @@ from django.shortcuts import render
 from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from product.serializers import ProductListSerializer, AddRateSerializer, AllCommentsserilizer, CheckCommentSerializer, \
-    AddToCartSerializer
+from product.serializers import ProductListSerializer, AddRateSerializer, AllCommentsserilizer, CheckCommentSerializer, SecondProductListSerializer, AddToCartSerializer
 from .models import User, Product, Comment
 from rest_framework.response import Response
 
 
 class ProductListAPIView(generics.ListAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductListSerializer
-    permission_classes = [AllowAny]
-    filterset_fields = ['brand','type','name']
+    permission_classes = (AllowAny,)
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            print("Trueeeeeeeeeeee")
+            queryset = Product.objects.all()
+            # serializer_class = ProductListSerializer
+            self.serializer_class=ProductListSerializer
+            filterset_fields = ['brand','type','name','rate']
+            return queryset
+
+        else:
+            print("Falseeeeeeeeeeeeee")
+            queryset = Product.objects.all()
+            self.serializer_class=SecondProductListSerializer
+            filterset_fields = ['brand','type','name']
+            return queryset
+
 
 
 class ProductItamAPIView(generics.RetrieveAPIView):
@@ -35,7 +48,7 @@ class AddRate(generics.UpdateAPIView):
         serializer.context["username"] = user_name
         serializer.is_valid(raise_exception=True)
         print("URL: ",index_item)
-        return  Response('auishdioahsodi')
+        return  Response('Ok')
 
 
 class AllComments(generics.ListAPIView):
@@ -60,18 +73,3 @@ class CheckComment(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-# class AddToCart(generics.UpdateAPIView):
-#     queryset = User.objects.all()
-
-class AddToCart(APIView):
-    queryset = User.objects.all()
-    permission_classes = (IsAuthenticated,)
-    serializer_class = AddToCartSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        products = serializer.validated_data['products']
-        products += User.objects.filter(id=request.user.id).cart
-        User.objects.filter(id=request.user.id).update(cart=products)
-        return Response(status=status.HTTP_200_OK)

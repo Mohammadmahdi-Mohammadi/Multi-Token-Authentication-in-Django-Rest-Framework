@@ -28,9 +28,9 @@ class Tokenadmin(admin.ModelAdmin):
     list_display = ['username', 'token']
 
 
-admin.site.register(Post, Postadmin)
+# admin.site.register(Post, Postadmin)
 # admin.site.register(Post)
-admin.site.register(Comment, CommentAdmin)
+# admin.site.register(Comment, CommentAdmin)
 # admin.site.register(Tokenlist, Tokenadmin)
 # admin.site.register(User)
 

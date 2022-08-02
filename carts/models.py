@@ -5,9 +5,10 @@ from product.models import Product
 from django.db.models.signals import pre_save,post_save
 from django.dispatch import receiver
 
+
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # ordered = models.BooleanField(default=True)
+    ordered = models.BooleanField(default=False)
     # total_price = models.IntegerField(default=0)
 
     def __str__(self):
@@ -19,5 +20,10 @@ class CartItem(models.Model):
     count = models.IntegerField(default=0)
 
     def __str__(self):
+        return str(self.product) + "//" + str(self.count)
 
-        return str(self.product) + "//"+ str(self.count)
+
+class Shopping(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    shopping_date = models.DateTimeField(auto_now=True)
+    tracking_id = models.CharField(max_length=5,blank=False)

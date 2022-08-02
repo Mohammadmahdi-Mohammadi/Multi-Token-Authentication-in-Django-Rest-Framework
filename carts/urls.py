@@ -1,13 +1,12 @@
-from django.contrib import admin
-from django.urls import path, include, re_path
-from .views import add_product
-from rest_framework.authtoken import views
-from rest_framework.routers import DefaultRouter
-from rest_framework.authtoken.views import obtain_auth_token
-
+from django.urls import path
+from .views import AddProduct, CartView, RemoveFromCart, ShoppingAPIView, TrackList, TrackDetails, CartDetailView
 
 urlpatterns = [
-    # path('add/', KillTokensAPIView.as_view()),
-    path('add/', add_product.as_view()),
-
+    path('add/', AddProduct.as_view()),
+    path('view/', CartView.as_view()),
+    path('remove/', RemoveFromCart.as_view()),
+    path('shop/', ShoppingAPIView.as_view()),
+    path('tracklist/', TrackList.as_view()),
+    path('trackdetails/<int:tracking_id>/', TrackDetails.as_view(), name='cartdetail'),
+    path('cartdetail/<int:cart_id>/', CartDetailView.as_view()),
     ]

@@ -151,17 +151,19 @@ STATIC_URL = 'static/'
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'posts.authentication.MultiTokenAuthentication',
     ],
 
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.TokenAuthentication',
-        'posts.authentication.MultiTokenAuthentication',
-    ]
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
+    'DEFAULT_PAGINATION_CLASS':"rest_framework.pagination.PageNumberPagination",
+    'PAGE_SIZE':5
+    ,
 }
 
 AUTH_USER_MODEL = 'account.User'

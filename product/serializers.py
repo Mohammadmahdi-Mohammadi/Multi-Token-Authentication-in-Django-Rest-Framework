@@ -10,10 +10,14 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+class SecondProductListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['name','brand','type']
+
+
 class AddRateSerializer(serializers.ModelSerializer):
     rate = serializers.IntegerField(required=True)
-    # url = request.build_absolute_uri()
-    # index_item = url.split('/')[-2]
 
     class Meta:
         model = Product
@@ -23,37 +27,35 @@ class AddRateSerializer(serializers.ModelSerializer):
         rate = self.context["rate"]
         product_id = self.context["product_id"]
         username = self.context["username"]
-        print(rate)
-        print(product_id)
-        print(username)
-        product = Product.objects.filter(id=product_id)
-        old_rate = product.first().rate
-        old_users = product.first().user
-        old_users_number = product.first().number_of_voters
-        new_user = old_users + '#]/!.!/[#' + username
-        new_rate = int(old_rate) + int(rate)
-        if username in old_users:
-            raise serializers.ValidationError("You have already voted for this product!")
-        product = Product.objects.filter(id=product_id).update(rate=new_rate,user=new_user,number_of_voters=old_users_number+1)
 
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print(product_id)
+        product = Product.objects.filter(id=int(product_id))
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        old_rate = product.first().rate
+        print(product)
+        old_users = product.first().users
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        old_users_number = product.first().number_of_voters
+        new_user = str(old_users) + '#]/!.!/[#' + str(username)
+        new_rate = int(old_rate) + int(rate)
+        if username in str(old_users):
+            raise serializers.ValidationError("You have already voted for this product!")
+        Product.objects.filter(id=product_id).update(rate=new_rate, number_of_voters=old_users_number+1, users=new_user)
 
 
     def validate(self,data):
-        self.get_alternate_data()
         var = data['rate']
-        if var > 5 or var <0 :
+        if var > 5 or var < 0:
             raise serializers.ValidationError("enter validate rate 0 to 5")
+        self.get_alternate_data()
         return data
 
 #
 class AllCommentsserilizer(serializers.ModelSerializer):
-    # rate = serializers.IntegerField(required=True)
-    # print("FFFFFFFFFFFFFFF")
-
     class Meta:
         model = Comment
         fields = ['body', 'product', 'id', 'date_add' ]
-
 
 
 class CheckCommentSerializer(serializers.Serializer):
