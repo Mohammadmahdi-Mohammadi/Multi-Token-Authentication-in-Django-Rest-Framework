@@ -5,10 +5,10 @@ from rest_framework import serializers,exceptions
 from rest_framework.exceptions import NotFound
 from .models import CartItem
 
+
 class add_product_serilizer(serializers.Serializer):
     response_array = [["Product_ID", "operation_status", "massage"]]
     binary_saver = serializers.ListField(child=serializers.ListField(child=serializers.IntegerField(), required=True,allow_null=False,min_length=1,max_length=2),required=True, allow_null=False,min_length=1)
-
 
     def array_cleaner(self):
         self.response_array = [["Product_ID","operation_status","massage"]]
