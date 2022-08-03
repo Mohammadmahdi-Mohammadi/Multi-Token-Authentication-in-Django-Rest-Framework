@@ -36,7 +36,6 @@ class AddProduct(generics.UpdateAPIView):
         return Response({'token': array_temp}, status=status.HTTP_200_OK)
 
 
-
 class CartView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CartViewSerializer
@@ -46,6 +45,7 @@ class CartView(generics.ListAPIView):
         # print(objects.first().ordered)
         my_cart = CartItem.objects.filter(cart__in=objects)
         return my_cart
+
 
 class RemoveFromCart(APIView):
     permission_classes = (IsAuthenticated,)
@@ -77,6 +77,7 @@ class ShoppingAPIView(APIView):
             return object
         else:
             raise NotFound()
+
     def post(self, request, *args, **kwargs):
         tracking_id = random.randint(9999, 99999)
         Shopping.objects.get_or_create(cart=self.get_queryset(),tracking_id=tracking_id)
@@ -96,9 +97,11 @@ class TrackList(generics.ListAPIView):
         queryset = Shopping.objects.filter(cart__in=carts)
         return queryset
 
+
 class TrackDetails(generics.RetrieveAPIView):
     serializer_class = TrackDetailSerializer
     lookup_field = "tracking_id"
+
     def get_queryset(self):
         carts = Cart.objects.filter(user=self.request.user)
         print(carts)
@@ -109,6 +112,7 @@ class TrackDetails(generics.RetrieveAPIView):
 class CartDetailView(generics.ListAPIView):
     serializer_class = CartDetailllllViewSerializer
     lookup_field = 'cart_id'
+
     def get_queryset(self):
         usercarts = Cart.objects.filter(user=self.request.user)
         queryset = CartItem.objects.filter(cart__in=usercarts,cart=self.kwargs.get('cart_id'))

@@ -7,7 +7,6 @@ from rest_framework.exceptions import NotFound
 class AddCommentSerializer(serializers.Serializer):
     comment = serializers.CharField(max_length=5000, required=True,allow_blank=False)
 
-
     def validate(self, data):
         if data['comment']:
             product = self.context['PID']
@@ -36,6 +35,7 @@ class ListCommentSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError("product not found!")
         return data
+
 
 class ProductscoreSerializer(serializers.ModelSerializer):
     class Meta:

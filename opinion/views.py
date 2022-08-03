@@ -35,6 +35,7 @@ class ListComment(generics.ListCreateAPIView):
         ListCommentSerializer.array_cleaner(self.serializer_class)
         return Response(current_result,status=status.HTTP_200_OK)
 
+
 class ProductScoreAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductscoreSerializer
