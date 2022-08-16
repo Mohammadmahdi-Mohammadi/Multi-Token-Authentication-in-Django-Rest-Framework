@@ -12,14 +12,12 @@ class ProductListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            print("Trueeeeeeeeeeee")
             queryset = Product.objects.all()
             # serializer_class = ProductListSerializer
             self.serializer_class=ProductListSerializer
             filterset_fields = ['brand','type','name','rate']
             return queryset
         else:
-            print("Falseeeeeeeeeeeeee")
             queryset = Product.objects.all()
             self.serializer_class=SecondProductListSerializer
             filterset_fields = ['brand','type','name']
@@ -46,7 +44,7 @@ class AddRate(generics.UpdateAPIView):
         serializer.context["username"] = user_name
         serializer.is_valid(raise_exception=True)
         print("URL: ",index_item)
-        return  Response('Ok')
+        return Response('Ok')
 
 
 class AllComments(generics.ListAPIView):
